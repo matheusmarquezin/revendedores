@@ -6,6 +6,7 @@ let config = require('../config.js');
 var router = express.Router();
 
 var Revendedor = require("../model/Revendedor.js");
+var Compra = require("../model/Compra.js");
 var revendedorDAO;
 var compraDAO;
 
@@ -94,8 +95,21 @@ router.post('/login', function (req, res, next) {
 });
 
 router.post('/novaCompra', function (req, res, next) {
+  checkToken(req,res,next)
   var compra = req.body;
   compraDAO.addCompra(compra, (err, retorno) =>{
+    if (!err && retorno){
+      res.send(retorno)
+    }
+    else
+      res.send(err, 400);
+  });
+});
+
+router.put('/atualizarCompra', function (req, res, next) {
+  checkToken(req,res,next)
+  var compra = new Compra(req.body);
+  compraDAO.updateCompra(compra, (err, retorno) =>{
     if (!err && retorno){
       res.send(retorno)
     }

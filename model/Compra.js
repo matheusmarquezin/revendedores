@@ -8,6 +8,8 @@ class Compra {
         var valor;
         var data;
         var status;
+        var porcentagemCashback;
+        var valorCashback;
         var revendedor;
 
         if (compra) {
@@ -15,6 +17,8 @@ class Compra {
             this.codigo = compra.codigo;
             this.valor = compra.valor;
             this.data = compra.data;
+            this.porcentagemCashback = compra.porcentagemCashback;
+            this.valorCashback = compra.valorCashback;
             this.status = compra.status;
             this.revendedor = ObjectId(compra.revendedor);
         }
@@ -27,6 +31,8 @@ class Compra {
             "valor": this.valor, 
             "data": this.data, 
             "status": this.status, 
+            "porcentagemCashback": this.porcentagemCashback, 
+            "valorCashback": this.valorCashback,
             "revendedor": ObjectId(this.revendedor)
         };
     }

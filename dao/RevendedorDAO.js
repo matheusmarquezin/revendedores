@@ -111,7 +111,7 @@ class RevendedorDAO {
 
     updateRevendedor(revendedor, cb) {
         var newvalues = {
-            $set: revendedor.getUsuarioDb()
+            $set: revendedor.getRevendedorDb()
         }
         this.connection.collection("revendedores").updateOne({ "_id": revendedor.getRevendedorDb()._id }, newvalues, function (err, res) {
             cb(err, res);
