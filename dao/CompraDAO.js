@@ -10,6 +10,15 @@ class CompraDAO {
         this.connection = connection;
         this.status = ['Aprovado', 'Em validação']
     }
+    getCompras(cb) {
+        this.connection.collection("compras").find({}).toArray(function (err, compras) {
+            var resultado = [];
+            for(var index in compras){
+                resultado.push(new Compra(compras[index]).toJsonReturn())
+            }
+            return cb(err, resultado);
+        });
+    }
     validarDadosCompra(compra,cb){
         if(!compra){
             cb('Informações inválidas!',null);
@@ -92,8 +101,7 @@ class CompraDAO {
     }
     updateCompra(compra, cb) {
         this.getCompraPorId(compra._id,(err,compraBanco)=>{
-            console.log(err)
-            if(!err && compraBanco.status != this.status[0]){
+            if(!err && compraBanco.status == this.status[1]){
                 compra.porcentagemCashback = this.verificarPorcentagemCashback(compra.valor);
                 compra.valorCashback = this.calculaCashback(compra.valor, compra.porcentagemCashback);
 
@@ -120,6 +128,27 @@ class CompraDAO {
                 cb('Você não pode atualizar uma compra com status :' +compra.status,null)
             }
         });
+    }
+
+    excluirCompra(id, cb) {
+        if(!ObjectId.isValid(id)){
+            return cb('Chave da compra é inválida!',null)
+        }
+
+        this.getCompraPorId(id, (err, compra)=>{
+            console.log(err, compra)
+            if(err || !compra){
+                return cb('Compra informada não existe!',null);                
+            }
+            if(compra.status == this.status[1]){
+                this.connection.collection("compras").remove({ "_id": ObjectId(id) }, 1).then(function (err, res) {
+                    return cb(err,res);
+                });
+            }else{
+                cb('Você não pode excluir uma compra com status :' +compra.status,null)
+            }
+        })
+        
     }
 }
 module.exports = CompraDAO;

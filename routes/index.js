@@ -35,7 +35,9 @@ router.get('/', function(req, res) {
 });
 
 router.post('/cadastrarRevendedor', function (req, res, next) {
-  checkToken(req,res,next)
+  if(checkToken(req,res,next)){
+    return;
+  }
   var revendedor = new Revendedor(req.body);
   revendedorDAO.addRevendedor(revendedor, (err, retorno) => {
     if (!err)
@@ -46,6 +48,12 @@ router.post('/cadastrarRevendedor', function (req, res, next) {
 });
 
 var checkToken = (req, res, next) => {
+  if(!req.headers)
+    return res.json({
+      success: false,
+      message: 'Token está nulo!'
+    });
+
   let token = req.headers['x-access-token'] || req.headers['authorization'];
   
   if (token && token.startsWith('Bearer ')) {
@@ -95,7 +103,9 @@ router.post('/login', function (req, res, next) {
 });
 
 router.post('/novaCompra', function (req, res, next) {
-  checkToken(req,res,next)
+  if(checkToken(req,res,next)){
+    return;
+  }
   var compra = req.body;
   compraDAO.addCompra(compra, (err, retorno) =>{
     if (!err && retorno){
@@ -107,7 +117,9 @@ router.post('/novaCompra', function (req, res, next) {
 });
 
 router.put('/atualizarCompra', function (req, res, next) {
-  checkToken(req,res,next)
+  if(checkToken(req,res,next)){
+    return;
+  }
   var compra = new Compra(req.body);
   compraDAO.updateCompra(compra, (err, retorno) =>{
     if (!err && retorno){
@@ -118,8 +130,33 @@ router.put('/atualizarCompra', function (req, res, next) {
   });
 });
 
+router.delete('/excluirCompra/:id', function (req, res, next) {
+  if(checkToken(req,res,next)){
+    return;
+  }
+  compraDAO.excluirCompra(req.param("id"), (err, retorno) =>{
+    if (!err && retorno){
+      res.send(retorno)
+    }
+    else
+      res.send(err, 400);
+  });
+});
+router.get('/compras', function (req, res, next) {
+  if(checkToken(req,res,next)){
+    return;
+  }
+  compraDAO.getCompras((err, dados) => {
+    if (!err)
+      res.send(dados)
+    else
+      res.send(err, 400);
+  });
+});
 router.get('/revendedores', function (req, res, next) {
-  checkToken(req,res,next)
+  if(checkToken(req,res,next)){
+    return;
+  }
   revendedorDAO.getRevendedores((err, dados) => {
     if (!err)
       res.send(dados)

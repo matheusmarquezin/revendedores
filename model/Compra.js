@@ -36,5 +36,17 @@ class Compra {
             "revendedor": ObjectId(this.revendedor)
         };
     }
+    toJsonReturn(){
+        return {
+            "_id": ObjectId(this._id),
+            "codigo": this.codigo,
+            "valor": this.valor, 
+            "data": this.data, 
+            "status": this.status, 
+            "porcentagemCashback": (this.porcentagemCashback * 100) +'%', 
+            "valorCashback": this.valorCashback,
+            "revendedor": ObjectId(this.revendedor)
+        };
+    }
 }
 module.exports = Compra;
