@@ -7,6 +7,7 @@ var router = express.Router();
 
 var Revendedor = require("../model/Revendedor.js");
 var revendedorDAO;
+var compraDAO;
 
 router.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -19,6 +20,10 @@ router.all('*', function (req, res, next) {
   if (!revendedorDAO) {
     var revendedorDAOClass = require("../dao/RevendedorDAO.js");
     revendedorDAO = new revendedorDAOClass(req.app.settings.mongo)
+  }
+  if(!compraDAO){
+    var compraDAOClass = require("../dao/CompraDAO.js");
+    compraDAO = new compraDAOClass(req.app.settings.mongo)
   }
   return next()
 });
@@ -82,6 +87,17 @@ router.post('/login', function (req, res, next) {
         message: 'Autenticado com sucesso!',
         token: token
       });
+    }
+    else
+      res.send(err, 400);
+  });
+});
+
+router.post('/novaCompra', function (req, res, next) {
+  var compra = req.body;
+  compraDAO.addCompra(compra, (err, retorno) =>{
+    if (!err && retorno){
+      res.send(retorno)
     }
     else
       res.send(err, 400);

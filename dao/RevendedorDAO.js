@@ -8,33 +8,71 @@ class RevendedorDAO {
     constructor(connection) {
         this.connection = connection;
     }
-    getRevendedores(cb){
+    getRevendedores(cb) {
         this.connection.collection("revendedores").find({}).toArray(function (err, revendedores) {
-            return cb(err,revendedores);
+            return cb(err, revendedores);
         });
     }
     getRevendedorPorId(id, cb) {
         this.connection.collection("revendedores").findOne({ "_id": ObjectId(id) }, function (err, revendedorBanco) {
-            cb(err,new Revendedor(revendedorBanco))
+            var revendedor = null;
+            if(revendedorBanco){
+                revendedor = new Revendedor(revendedorBanco);
+            }
+            cb(err, revendedor)
         });
     }
     getRevendedorPorCPF(cpf, cb) {
         this.connection.collection("revendedores").findOne({ "cpf": cpf }, function (err, revendedorBanco) {
-            cb(err,new Revendedor(revendedorBanco))
+            var revendedor = null;
+            if(revendedorBanco){
+                revendedor = new Revendedor(revendedorBanco);
+            }
+            cb(err, revendedor)
         });
     }
-    getRevendedorByEmailAndPassword(email,password, cb) {
-        this.connection.collection("revendedores").findOne({"email": email}, function (err, revendedorBanco) {
-                   
-            if(revendedorBanco && bcrypt.compareSync(password, revendedorBanco.password))
-                cb(err,new Revendedor(revendedorBanco))
-            else{
+    getRevendedorPorEmail(email, cb) {
+        this.connection.collection("revendedores").findOne({ "email": email }, function (err, revendedorBanco) {
+            var revendedor = null;
+            if(revendedorBanco){
+                revendedor = new Revendedor(revendedorBanco);
+            }
+            cb(err, revendedor)
+        });
+    }
+    getRevendedorByEmailAndPassword(email, password, cb) {
+        this.connection.collection("revendedores").findOne({ "email": email }, function (err, revendedorBanco) {
+
+            if (revendedorBanco && bcrypt.compareSync(password, revendedorBanco.password))
+                cb(err, new Revendedor(revendedorBanco))
+            else {
                 cb(err = 404, null)
             }
         });
     }
+    validarInformacoes(revendedor, cb) {
+        if (!revendedor) {
+            cb('Informações inválidas!')
+        }
+        if (!revendedor.nome) {
+            cb('nome inválido!')
+        }
+        if (!revendedor.cpf) {
+            cb('cpf inválido')
+        }
+        if (!revendedor.email) {
+            cb('email inválido')
+        }
+        if (!revendedor.password) {
+            cb('password inválido')
+        }
+    };
     addRevendedor(revendedor, cb) {
-
+        this.validarInformacoes(revendedor, (err) => {
+            if (err) {
+                cb(err, null)
+            }
+        })
         var password = revendedor.password;
 
         var salt = bcrypt.genSaltSync(10);
@@ -43,20 +81,29 @@ class RevendedorDAO {
         revendedor.password = hash;
         var validaCPF = /^\d{3}\.\d{3}\.\d{3}\-\d{2}$/.test(revendedor.cpf);
 
-        if(validaCPF){
-            this.getRevendedorPorCPF(revendedor.cpf, (err,revendedorExistente) =>{
+        if (validaCPF) {
+            this.getRevendedorPorCPF(revendedor.cpf, (err, revendedorExistente) => {
+                console.log(err , revendedorExistente)
+                if (!err && !revendedorExistente) {
 
-                if(!err && !revendedorExistente){
-                    this.connection.collection("revendedores").insertOne(revendedor.getRevendedorDb(), function (err, res) {
-                        cb(err, res.ops[0]._id)
+                    this.getRevendedorPorEmail(revendedor.email, (errEmail, revendedorExistenteEmail) => {
+
+                        if (!errEmail && !revendedorExistenteEmail) {
+                            this.connection.collection("revendedores").insertOne(revendedor.getRevendedorDb(), function (err, res) {
+                                cb(err, res.ops[0]._id)
+                            });
+                        } else {
+                            err = 'Já existe um revendedor com este email cadastrado!';
+                            cb(err, null)
+                        }
                     });
-                }else{
-                    err = 'Revendedor já cadastrado';
+                } else {
+                    err = 'Já existe um revendedor com este cpf cadastrado!';
                     cb(err, null)
                 }
             });
-           
-        }else{
+
+        } else {
             var err = 'CPF inválido';
             cb(err, null)
         }
@@ -65,9 +112,9 @@ class RevendedorDAO {
     updateRevendedor(revendedor, cb) {
         var newvalues = {
             $set: revendedor.getUsuarioDb()
-         }
+        }
         this.connection.collection("revendedores").updateOne({ "_id": revendedor.getRevendedorDb()._id }, newvalues, function (err, res) {
-            cb(err,res);
+            cb(err, res);
         });
     }
     removeRevendedor(id, cb) {
