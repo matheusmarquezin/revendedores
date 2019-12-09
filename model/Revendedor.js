@@ -2,6 +2,7 @@
 var ObjectId = require('mongodb').ObjectID;
 
 class Revendedor {
+    //cria novo objeto revendedor
     constructor(revendedor) {
         var _id;
         var nome;
@@ -9,6 +10,7 @@ class Revendedor {
         var cpf;
         var password;
 
+        //preenche dados do revendedor informados na criação do objeto
         if (revendedor) {
             this._id = ObjectId(revendedor._id);
             this.nome = revendedor.nome;
@@ -18,6 +20,7 @@ class Revendedor {
         }
     }
 
+    //metodo utilizado para gravar as informações no mongo
     getRevendedorDb() {
         return {
             "_id": ObjectId(this._id),

@@ -16,9 +16,10 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+//Inicia conexão com o mongo
 var mongoDB = 'mongodb://127.0.0.1:27017/desafio';
-
 mongoose.connect(mongoDB, { useNewUrlParser: true });
+//grava conexão para ser usada em toda a aplicação
 app.set("mongo", mongoose.connection)
 
 app.use(favicon());

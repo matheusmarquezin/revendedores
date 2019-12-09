@@ -2,6 +2,7 @@
 var ObjectId = require('mongodb').ObjectID;
 
 class Compra {
+    //cria novo objeto compra
     constructor(compra) {
         var _id;
         var codigo;
@@ -11,7 +12,7 @@ class Compra {
         var porcentagemCashback;
         var valorCashback;
         var revendedor;
-
+        //preenche dados da compra informados na criação do objeto
         if (compra) {
             this._id = ObjectId(compra._id);
             this.codigo = compra.codigo;
@@ -23,7 +24,7 @@ class Compra {
             this.revendedor = ObjectId(compra.revendedor);
         }
     }
-
+    //metodo utilizado para gravar as informações no mongo
     getCompraDb() {
         return {
             "_id": ObjectId(this._id),
@@ -36,6 +37,7 @@ class Compra {
             "revendedor": ObjectId(this.revendedor)
         };
     }
+    //metodo utilizado para customizar a visualização da compra quando é listada para o usuario
     toJsonReturn(){
         return {
             "_id": ObjectId(this._id),
