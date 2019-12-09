@@ -23,6 +23,7 @@ class RevendedorDAO {
         });
     }
     getRevendedorPorCPF(cpf, cb) {
+        cpf = cpf.replace(/\D/g, '');
         this.connection.collection("revendedores").findOne({ "cpf": cpf }, function (err, revendedorBanco) {
             var revendedor = null;
             if(revendedorBanco){
@@ -46,7 +47,7 @@ class RevendedorDAO {
             if (revendedorBanco && bcrypt.compareSync(password, revendedorBanco.password))
                 cb(err, new Revendedor(revendedorBanco))
             else {
-                cb(err = 404, null)
+                cb('Usuário ou senha inválidos', null)
             }
         });
     }
@@ -79,11 +80,13 @@ class RevendedorDAO {
         var hash = bcrypt.hashSync(password, salt);
 
         revendedor.password = hash;
+
         var validaCPF = /^\d{3}\.\d{3}\.\d{3}\-\d{2}$/.test(revendedor.cpf);
 
         if (validaCPF) {
+
+            revendedor.cpf = revendedor.cpf.replace(/\D/g, '');
             this.getRevendedorPorCPF(revendedor.cpf, (err, revendedorExistente) => {
-                console.log(err , revendedorExistente)
                 if (!err && !revendedorExistente) {
 
                     this.getRevendedorPorEmail(revendedor.email, (errEmail, revendedorExistenteEmail) => {
@@ -104,7 +107,7 @@ class RevendedorDAO {
             });
 
         } else {
-            var err = 'CPF inválido';
+            var err = 'Informe um CPF válido (XXX.XXX.XXX-XX)';
             cb(err, null)
         }
     }

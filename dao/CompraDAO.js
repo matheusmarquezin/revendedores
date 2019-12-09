@@ -65,7 +65,7 @@ class CompraDAO {
         return porcentagem;
     }
     calculaCashback(valor,porcentagem){
-        return valor + (valor * porcentagem)
+        return (valor * porcentagem)
     }
 
     addCompra(compra, cb) {
@@ -75,7 +75,7 @@ class CompraDAO {
             }else{
                 compra.revendedor = id_revendedor;
                 compra.valor = parseFloat(compra.valor);
-                if(compra.cpf == '153.509.460-56'){
+                if(compra.cpf == '153.509.460-56' || compra.cpf == '15350946056'){
                     compra.status = this.status[0];
                 }else{
                     compra.status = this.status[1];
@@ -111,7 +111,7 @@ class CompraDAO {
                         cb('Revendedor não existe!',null)
                     }else if (resultado){
                         compra.revendedor = resultado._id;
-                        if(resultado.cpf == '153.509.460-56'){
+                        if(resultado.cpf == '153.509.460-56'|| compra.cpf == '15350946056'){
                             compra.status = this.status[0];
                         }else{
                             compra.status = this.status[1];

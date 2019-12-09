@@ -4,6 +4,7 @@ let jwt = require('jsonwebtoken');
 let config = require('../config.js');
 
 var router = express.Router();
+var Request = require("request");
 
 var Revendedor = require("../model/Revendedor.js");
 var Compra = require("../model/Compra.js");
@@ -22,7 +23,7 @@ router.all('*', function (req, res, next) {
     var revendedorDAOClass = require("../dao/RevendedorDAO.js");
     revendedorDAO = new revendedorDAOClass(req.app.settings.mongo)
   }
-  if(!compraDAO){
+  if (!compraDAO) {
     var compraDAOClass = require("../dao/CompraDAO.js");
     compraDAO = new compraDAOClass(req.app.settings.mongo)
   }
@@ -30,14 +31,11 @@ router.all('*', function (req, res, next) {
 });
 
 /* GET home page. */
-router.get('/', function(req, res) {
+router.get('/', function (req, res) {
   next();
 });
 
 router.post('/cadastrarRevendedor', function (req, res, next) {
-  if(checkToken(req,res,next)){
-    return;
-  }
   var revendedor = new Revendedor(req.body);
   revendedorDAO.addRevendedor(revendedor, (err, retorno) => {
     if (!err)
@@ -48,20 +46,20 @@ router.post('/cadastrarRevendedor', function (req, res, next) {
 });
 
 var checkToken = (req, res, next) => {
-  if(!req.headers)
+  if (!req.headers)
     return res.json({
       success: false,
       message: 'Token está nulo!'
     });
 
   let token = req.headers['x-access-token'] || req.headers['authorization'];
-  
+
   if (token && token.startsWith('Bearer ')) {
     token = token.slice(7, token.length);
   }
   if (token) {
     jwt.verify(token, config.secret, (err, decoded) => {
-      
+
       if (err) {
         return res.json({
           success: false,
@@ -83,12 +81,12 @@ var checkToken = (req, res, next) => {
 router.post('/login', function (req, res, next) {
   var email = req.body.email;
   var password = req.body.password;
-  revendedorDAO.getRevendedorByEmailAndPassword(email,password, (err, retorno) =>{
-    if (!err && retorno){
-      let token = jwt.sign({email: email},
+  revendedorDAO.getRevendedorByEmailAndPassword(email, password, (err, retorno) => {
+    if (!err && retorno) {
+      let token = jwt.sign({ email: email },
         config.secret,
         {
-          expiresIn: '24h' // expires in 24 hours
+          expiresIn: 864000
         }
       );
       res.json({
@@ -103,12 +101,12 @@ router.post('/login', function (req, res, next) {
 });
 
 router.post('/novaCompra', function (req, res, next) {
-  if(checkToken(req,res,next)){
+  if (checkToken(req, res, next)) {
     return;
   }
   var compra = req.body;
-  compraDAO.addCompra(compra, (err, retorno) =>{
-    if (!err && retorno){
+  compraDAO.addCompra(compra, (err, retorno) => {
+    if (!err && retorno) {
       res.send(retorno)
     }
     else
@@ -117,12 +115,12 @@ router.post('/novaCompra', function (req, res, next) {
 });
 
 router.put('/atualizarCompra', function (req, res, next) {
-  if(checkToken(req,res,next)){
+  if (checkToken(req, res, next)) {
     return;
   }
   var compra = new Compra(req.body);
-  compraDAO.updateCompra(compra, (err, retorno) =>{
-    if (!err && retorno){
+  compraDAO.updateCompra(compra, (err, retorno) => {
+    if (!err && retorno) {
       res.send(retorno)
     }
     else
@@ -131,11 +129,11 @@ router.put('/atualizarCompra', function (req, res, next) {
 });
 
 router.delete('/excluirCompra/:id', function (req, res, next) {
-  if(checkToken(req,res,next)){
+  if (checkToken(req, res, next)) {
     return;
   }
-  compraDAO.excluirCompra(req.param("id"), (err, retorno) =>{
-    if (!err && retorno){
+  compraDAO.excluirCompra(req.param("id"), (err, retorno) => {
+    if (!err && retorno) {
       res.send(retorno)
     }
     else
@@ -143,7 +141,7 @@ router.delete('/excluirCompra/:id', function (req, res, next) {
   });
 });
 router.get('/compras', function (req, res, next) {
-  if(checkToken(req,res,next)){
+  if (checkToken(req, res, next)) {
     return;
   }
   compraDAO.getCompras((err, dados) => {
@@ -153,8 +151,37 @@ router.get('/compras', function (req, res, next) {
       res.send(err, 400);
   });
 });
+retirarMascara = (cpf) => {
+  return cpf.replace(/\D/g, '');
+}
+validarCPF = (cpf) => {
+  return /^\d{3}\.\d{3}\.\d{3}\-\d{2}$/.test(cpf);
+}
+router.get('/totalCashback/:cpf', function (req, res, next) {
+  if (checkToken(req, res, next)) {
+    return;
+  }
+  var cpf = req.param("cpf");
+  if (validarCPF(cpf)) {
+    cpf = retirarMascara(cpf);
+    Request.get({
+      "headers": { 
+        "content-type": "application/json" ,
+        "token":"ZXPURQOARHiMc6Y0flhRC1LVlZQVFRnm"
+      },
+      "url": "https://mdaqk8ek5j.execute-api.us-east-1.amazonaws.com/v1/cashback?cpf=" + cpf
+    }, (error, response, body) => {
+      if (error) {
+        res.send(error, 400);
+      }
+      res.send(body)
+    });
+  } else {
+    res.send('Informe um CPF válido (XXX.XXX.XXX-XX)', 400);
+  }
+});
 router.get('/revendedores', function (req, res, next) {
-  if(checkToken(req,res,next)){
+  if (checkToken(req, res, next)) {
     return;
   }
   revendedorDAO.getRevendedores((err, dados) => {
